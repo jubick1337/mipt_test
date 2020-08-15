@@ -8,7 +8,7 @@ from utils import convert_emojis, remove_urls, normalize_whitespaces
 class SentimentAnalysisDataset(torch.utils.data.Dataset):
 
     def __init__(self, data_path: Path):
-        self._df = pd.read_csv(data_path, error_bad_lines=False)
+        self._df = pd.read_csv(data_path)
 
     def __getitem__(self, idx):
         sample = self._df.iloc[idx]
@@ -17,8 +17,6 @@ class SentimentAnalysisDataset(torch.utils.data.Dataset):
         text = remove_urls(text)
         text = convert_emojis(text)
         text = normalize_whitespaces(text)
-        if len(text) > 512:
-            text = text[:512]
         return {'text': text, 'label': torch.Tensor([label])}
 
     def __len__(self):
