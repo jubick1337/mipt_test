@@ -18,6 +18,8 @@ train_data = torch.utils.data.DataLoader(SentimentAnalysisDataset(Path('train.cs
 test_data = torch.utils.data.DataLoader(SentimentAnalysisDataset(Path('test.csv')), batch_size=16)
 
 tokenizer = BertTokenizer.from_pretrained('DeepPavlov/rubert-base-cased')
+
+model.resize_token_embeddings(len(tokenizer))
 best_f1 = 0.0
 for epoch in range(epochs):
     train_loss = 0.0
@@ -30,7 +32,7 @@ for epoch in range(epochs):
         train_loss += loss.item()
         optimizer.step()
         if current_step % 100 == 1:
-            print(f'Epoch {epochs}, step {current_step} loss: {train_loss / current_step}')
+            print(f'Epoch {epoch}, step {current_step} loss: {train_loss / current_step}')
 
     with torch.no_grad():
         model.eval()
