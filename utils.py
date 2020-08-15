@@ -1,10 +1,12 @@
 import re
+import torch
 from emot.emo_unicode import UNICODE_EMO
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 
 
 def compute_metrics(predicted, ground_truth):
     predicted = predicted.argmax(-1)
+    ground_truth = torch.flatten(ground_truth)
     precision, recall, f1, _ = precision_recall_fscore_support(ground_truth, predicted, average='binary')
     acc = accuracy_score(ground_truth, predicted)
     return {

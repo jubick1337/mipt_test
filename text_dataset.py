@@ -17,6 +17,8 @@ class SentimentAnalysisDataset(torch.utils.data.Dataset):
         text = remove_urls(text)
         text = convert_emojis(text)
         text = normalize_whitespaces(text)
+        if len(text) > 512:
+            text = text[:512]
         return {'text': text, 'label': torch.Tensor([label])}
 
     def __len__(self):
