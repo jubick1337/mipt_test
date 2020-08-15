@@ -13,7 +13,7 @@ class SentimentAnalysisDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         sample = self._df.iloc[idx]
         text = sample.text
-        label = sample.label
+        label = sample.label + 1
         text = remove_urls(text)
         text = convert_emojis(text)
         text = normalize_whitespaces(text)

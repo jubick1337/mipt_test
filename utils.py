@@ -3,11 +3,10 @@ from emot.emo_unicode import UNICODE_EMO
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 
 
-def compute_metrics(pred):
-    labels = pred.label_ids
-    preds = pred.predictions.argmax(-1)
-    precision, recall, f1, _ = precision_recall_fscore_support(labels, preds, average='binary')
-    acc = accuracy_score(labels, preds)
+def compute_metrics(predicted, ground_truth):
+    predicted = predicted.argmax(-1)
+    precision, recall, f1, _ = precision_recall_fscore_support(ground_truth, predicted, average='binary')
+    acc = accuracy_score(ground_truth, predicted)
     return {
         'accuracy': acc,
         'f1': f1,
