@@ -10,14 +10,14 @@ from utils import compute_metrics
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # device = 'cpu'
-model = BertForSequenceClassification.from_pretrained("DeepPavlov/rubert-base-cased", num_labels=3)
+model = BertForSequenceClassification.from_pretrained("bert-base-multilingual-cased", num_labels=3)
 model.train().to(device)
 epochs = 100
 optimizer = AdamW(model.parameters(), lr=1e-3)
 train_data = torch.utils.data.DataLoader(SentimentAnalysisDataset(Path('train.csv')), batch_size=32, shuffle=True)
 test_data = torch.utils.data.DataLoader(SentimentAnalysisDataset(Path('test.csv')), batch_size=16)
 
-tokenizer = BertTokenizer.from_pretrained('DeepPavlov/rubert-base-cased')
+tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
 
 model.resize_token_embeddings(len(tokenizer))
 best_f1 = 0.0
