@@ -1,27 +1,101 @@
 import re
 import torch
 from emot.emo_unicode import UNICODE_EMO
-from sklearn.metrics import precision_recall_fscore_support, accuracy_score
+import torch.nn.functional as F
+import numpy as np
+
+PRETRAINED_MODEL_NAME = 'DeepPavlov/rubert-base-cased-conversational'
 
 
-def compute_metrics(predicted, ground_truth):
-    predicted = predicted.argmax(-1)
-    ground_truth = torch.flatten(ground_truth)
-    precision, recall, f1, _ = precision_recall_fscore_support(ground_truth, predicted,
-                                                               labels=[0, 1, 2])
-    acc = accuracy_score(ground_truth, predicted)
-    return {
-        'accuracy': acc,
-        'neg_f1': f1[0],
-        'neg_precision': precision[0],
-        'neg_recall': recall[0],
-        'neut_f1': f1[1],
-        'neut_precision': precision[1],
-        'neut_recall': recall[1],
-        'pos_f1': f1[2],
-        'pos_precision': precision[2],
-        'pos_recall': recall[2],
-    }
+def train_epoch(model, data_loader, loss_fn, optimizer, device, scheduler, n_examples):
+    model = model.train()
+
+    losses = []
+    correct_predictions = 0
+
+    for data in data_loader:
+        input_ids = data["input_ids"].to(device)
+        attention_mask = data["attention_mask"].to(device)
+        targets = data["targets"].to(device)
+
+        outputs = model(
+            input_ids=input_ids,
+            attention_mask=attention_mask
+        )
+
+        _, preds = torch.max(outputs, dim=1)
+        loss = loss_fn(outputs, targets)
+
+        correct_predictions += torch.sum(preds == targets)
+        losses.append(loss.item())
+
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+        optimizer.step()
+        scheduler.step()
+        optimizer.zero_grad()
+
+    return correct_predictions.double() / n_examples, np.mean(losses)
+
+
+def get_predictions(model, data_loader):
+    model = model.eval()
+    device = next(model.parameters()).device
+    review_texts = []
+    predictions = []
+    prediction_probs = []
+    real_values = []
+
+    with torch.no_grad():
+        for d in data_loader:
+            texts = d["review_text"]
+            input_ids = d["input_ids"].to(device)
+            attention_mask = d["attention_mask"].to(device)
+            targets = d["targets"].to(device)
+
+            outputs = model(
+                input_ids=input_ids,
+                attention_mask=attention_mask
+            )
+            _, preds = torch.max(outputs, dim=1)
+
+            probs = F.softmax(outputs, dim=1)
+
+            review_texts.extend(texts)
+            predictions.extend(preds)
+            prediction_probs.extend(probs)
+            real_values.extend(targets)
+
+    predictions = torch.stack(predictions).cpu()
+    prediction_probs = torch.stack(prediction_probs).cpu()
+    real_values = torch.stack(real_values).cpu()
+    return review_texts, predictions, prediction_probs, real_values
+
+
+def eval_model(model, data_loader, loss_fn, device, n_examples):
+    model = model.eval()
+
+    losses = []
+    correct_predictions = 0
+
+    with torch.no_grad():
+        for data in data_loader:
+            input_ids = data["input_ids"].to(device)
+            attention_mask = data["attention_mask"].to(device)
+            targets = data["targets"].to(device)
+
+            outputs = model(
+                input_ids=input_ids,
+                attention_mask=attention_mask
+            )
+            _, preds = torch.max(outputs, dim=1)
+
+            loss = loss_fn(outputs, targets)
+
+            correct_predictions += torch.sum(preds == targets)
+            losses.append(loss.item())
+
+    return correct_predictions.double() / n_examples, np.mean(losses)
 
 
 def normalize_whitespaces(text):
