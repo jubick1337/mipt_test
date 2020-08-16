@@ -1,8 +1,9 @@
 import torch
 import transformers
+import pandas as pd
 from torch.utils.data.dataset import Dataset
 from torch.utils.data.dataloader import DataLoader
-import pandas as pd
+from transformers import BertTokenizer
 
 from utils import remove_urls, convert_emojis, normalize_whitespaces
 
@@ -23,7 +24,7 @@ def create_data_loader(df: pd.DataFrame, tokenizer: transformers.BertTokenizer, 
 
 class SentimentAnalysisDataset(Dataset):
 
-    def __init__(self, texts, labels, tokenizer, max_len):
+    def __init__(self, texts: pd.Series, labels: pd.Series, tokenizer: BertTokenizer, max_len: int):
         self.texts = texts
         self.labels = labels
         self.tokenizer = tokenizer

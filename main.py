@@ -1,5 +1,6 @@
-from collections import defaultdict
 import torch
+import pandas as pd
+from collections import defaultdict
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from torch import nn
@@ -9,7 +10,6 @@ from transformers import AdamW
 from model import SentimentClassifier
 from dataset import create_data_loader
 from utils import train_epoch, eval_model, get_predictions, PRETRAINED_MODEL_NAME
-import pandas as pd
 
 tokenizer = BertTokenizer.from_pretrained(PRETRAINED_MODEL_NAME)
 
