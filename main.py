@@ -17,7 +17,7 @@ df_train = pd.read_csv('train.csv')
 df_test = pd.read_csv('test.csv')
 df_train, df_val = train_test_split(df_train, test_size=0.25)
 
-BATCH_SIZE = 8
+BATCH_SIZE = 16
 MAX_LEN = 512
 
 train_data_loader = create_data_loader(df_train, tokenizer, MAX_LEN, BATCH_SIZE)
